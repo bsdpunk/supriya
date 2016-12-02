@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 from __future__ import print_function
 import atexit
+import os
 import subprocess
 import time
 from supriya.tools.systemtools import PubSub
@@ -40,6 +41,7 @@ class Server(SupriyaObject):
         '_control_bus_allocator',
         '_control_buses',
         '_control_bus_proxies',
+        '_debug_subprocess',
         '_debug_osc',
         '_debug_udp',
         '_default_group',
@@ -162,6 +164,7 @@ class Server(SupriyaObject):
         ### DEBUG ###
 
         self.debug_osc = False
+        self.debug_subprocess = False
         self.debug_udp = False
 
         ### REGISTER WITH ATEXIT ###
@@ -388,7 +391,10 @@ class Server(SupriyaObject):
         if kwargs:
             server_options = new(server_options, **kwargs)
         options_string = server_options.as_options_string(self.port)
-        command = '{} {} -V -1'.format(scsynth_path, options_string)
+        #command = '{} {} -V -1'.format(scsynth_path, options_string)
+        command = '{} {}'.format(scsynth_path, options_string)
+        if self.debug_subprocess:
+            print(command)
         self._server_process = subprocess.Popen(command, shell=True)
         time.sleep(0.25)
         self._is_running = True
@@ -617,6 +623,14 @@ class Server(SupriyaObject):
     def debug_osc(self, expr):
         self._debug_osc = bool(expr)
         self._osc_controller.debug_osc = self.debug_osc
+
+    @property
+    def debug_subprocess(self):
+        return self._debug_subprocess
+
+    @debug_subprocess.setter
+    def debug_subprocess(self, expr):
+        self._debug_subprocess = bool(expr)
 
     @property
     def debug_udp(self):
