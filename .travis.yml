@@ -1,21 +1,30 @@
 language: python
 
+sudo: required
+
 python:
     - 3.5
 
+env:
+    global:
+        AUDIODEV=null
+
 before_install:
     - sudo apt-get update -qq
-    - sudo apt-get install -y graphviz
-    - sudo apt-get install -y pulseaudio pulseaudio-module-jack
-    - sudo apt-get install -y libasound-dev libjack-jackd2-dev
-    - sudo apt-get install -y supercollider 
+    - sudo usermod -a -G audio travis
+    - sudo apt-get install -y build-essential
+    - sudo apt-get install -y portaudio19-dev libasound2-dev alsa-utils alsa-oss libjack-jackd2-dev
+    - sudo apt-get install -y supercollider graphviz
+    - sudo bash ./prep-dummy-soundcard.sh
+    - sudo -E su $USER -c "scsynth -h || true"
 
 install:
     - pip install -r requirements.txt
     - pip install -e .
 
 script:
-    - python -c 'import supriya'
+    - sudo -E su $USER -c "source $VIRTUAL_ENV/bin/activate; python -c 'import supriya'"
+    - sudo -E su $USER -c "source $VIRTUAL_ENV/bin/activate; py.test -vv supriya/tools/nonrealtimetools"
 
 notifications:
     email: false
