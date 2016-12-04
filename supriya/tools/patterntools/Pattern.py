@@ -159,31 +159,28 @@ class Pattern(SupriyaValueObject):
         return 1
 
     @classmethod
-    def _get_rng(cls, seed=None):
+    def _get_rng(cls):
         from supriya.tools import patterntools
+        pseed_file_path = inspect.getfile(patterntools.Pseed)
         identifier = None
         try:
             stack = inspect.stack()
-            for frame_info in reversed(stack):
-                if frame_info.filename != cls._filename:
-                    continue
-                elif frame_info.function != '__iter__':
-                    continue
-                identifier = id(frame_info.frame)
-                break
+            for frame_info in stack:
+                if (
+                    frame_info.filename == pseed_file_path and
+                    frame_info.function == '_iterate'
+                    ):
+                    identifier = id(frame_info.frame)
+                    break
         finally:
             del(frame_info)
             del(stack)
         if identifier in cls._rngs:
             rng = cls._rngs[identifier]
         elif identifier is None:
-            rng = iter(patterntools.RandomNumberGenerator(seed or 1))
-        else:
-            rng = cls._rngs.setdefault(
-                identifier,
-                iter(patterntools.RandomNumberGenerator(seed or 1))
-                )
-        return rng, identifier
+            rng = patterntools.RandomNumberGenerator.get_stdlib_rng()
+            cls._rngs[identifier] = rng
+        return rng
 
     def _handle_first(self, expr, state=None):
         return [expr]
