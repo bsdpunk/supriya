@@ -73,9 +73,11 @@ class Pbind(EventPattern):
     ### INITIALIZER ###
 
     def __init__(self, synthdef=None, **patterns):
+        from supriya.tools import patterntools
         from supriya.tools import synthdeftools
         assert isinstance(synthdef, (
             synthdeftools.SynthDef,
+            patterntools.Pattern,
             type(None),
             ))
         self._synthdef = synthdef
@@ -110,11 +112,18 @@ class Pbind(EventPattern):
             )
 
     def _iterate(self, state=None):
+        from supriya.tools import patterntools
+        from supriya.tools import synthdeftools
         patterns = self._coerce_pattern_pairs(self._patterns)
+        synthdef = self.synthdef
+        if isinstance(synthdef, patterntools.Pattern):
+            synthdef = iter(synthdef)
         while True:
             event = {}
-            if self.synthdef:
-                event['synthdef'] = self.synthdef
+            if isinstance(synthdef, (type(None), synthdeftools.SynthDef)):
+                event['synthdef'] = synthdef
+            else:
+                event['synthdef'] = next(synthdef)
             for name, pattern in patterns.items():
                 try:
                     event[name] = next(pattern)
