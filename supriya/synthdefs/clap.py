@@ -92,7 +92,7 @@ def _build_clap_synthdef():
 
         result = noise_one + noise_two
         result = result * 2
-        result = synthdeftools.Op.softclip(result)
+        result = result.softclip()
         result = result * builder['amplitude']
 
         ugentools.Out.ar(
