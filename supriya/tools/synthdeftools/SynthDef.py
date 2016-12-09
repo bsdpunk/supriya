@@ -78,7 +78,8 @@ class SynthDef(ServerObjectProxy):
         ugens,
         name=None,
         optimize=True,
-        parameter_names=None
+        parameter_names=None,
+        **kwargs
         ):
         from supriya.tools import synthdeftools
         from supriya.tools import ugentools
@@ -101,6 +102,13 @@ class SynthDef(ServerObjectProxy):
             parameter_names=parameter_names,
             )
         self._compiled_ugen_graph = compiler.compile_ugen_graph(self)
+        if 'decompiled' not in kwargs:
+            try:
+                decompiler = synthdeftools.SynthDefDecompiler
+                assert decompiler.decompile_synthdef(self.compile()) == self
+            except:
+                print('Decompiled SynthDef does not match compiled SynthDef.')
+                raise
 
     ### SPECIAL METHODS ###
 

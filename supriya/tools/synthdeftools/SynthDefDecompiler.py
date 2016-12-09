@@ -208,6 +208,7 @@ class SynthDefDecompiler(SupriyaObject):
         synthdef = synthdeftools.SynthDef(
             ugens=ugens,
             name=name,
+            decompiled=True,
             )
         if synthdef.name == synthdef.anonymous_name:
             synthdef._name = None
