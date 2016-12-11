@@ -338,6 +338,12 @@ class UGen(UGenMethodMixin):
             expanded_inputs.update(cached_unexpanded_inputs)
         return result
 
+    def _get_done_action(self):
+        from supriya.tools import synthdeftools
+        if 'done_action' not in self._ordered_input_names:
+            return None
+        return synthdeftools.DoneAction.from_expr(int(self.done_action))
+
     @staticmethod
     def _get_method_for_rate(cls, calculation_rate):
         from supriya.tools import synthdeftools

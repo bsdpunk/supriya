@@ -872,6 +872,15 @@ class SynthDef(ServerObjectProxy):
         raise ValueError
 
     @property
+    def done_actions(self):
+        done_actions = set()
+        for ugen in self.ugens:
+            done_action = ugen._get_done_action()
+            if done_action is not None:
+                done_actions.add(done_action)
+        return sorted(done_actions)
+
+    @property
     def has_gate(self):
         return 'gate' in self.parameter_names
 

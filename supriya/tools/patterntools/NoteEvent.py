@@ -223,6 +223,7 @@ class NoteEvent(Event):
         uuids,
         ):
         from supriya.tools import patterntools
+        from supriya.tools import synthdeftools
         duration = self['duration']
         if duration is None:
             duration = 1
@@ -236,6 +237,11 @@ class NoteEvent(Event):
                     gate=0,
                     )
                 requests.append(request)
+        elif any(
+            x >= synthdeftools.DoneAction.FREE_SYNTH
+            for x in synthdef.done_actions
+            ):
+            pass
         else:
             request = requesttools.NodeFreeRequest(
                 node_ids=node_ids,
