@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 import collections
 import copy
+import uuid
 from abjad.tools.topleveltools import new
 from supriya.tools.systemtools.SupriyaObject import SupriyaObject
 
@@ -13,19 +14,35 @@ class SynthDefBuilder(SupriyaObject):
 
         >>> from supriya.tools import synthdeftools
         >>> from supriya.tools import ugentools
-        >>> builder = synthdeftools.SynthDefBuilder()
-        >>> parameter = builder.add_parameter('frequency', 440)
-        >>> parameter = builder.add_parameter(
-        ...     'trigger', 0, synthdeftools.ParameterRate.TRIGGER,
+
+    ::
+
+        >>> builder = synthdeftools.SynthDefBuilder(
+        ...     frequency=440,
+        ...     trigger=synthdeftools.Parameter(
+        ...         value=0,
+        ...         parameter_rate=synthdeftools.ParameterRate.TRIGGER,
+        ...         ),
         ...     )
-        >>> sin_osc = ugentools.SinOsc.ar(frequency=builder['frequency'])
-        >>> decay = ugentools.Decay.kr(
-        ...     decay_time=0.5,
-        ...     source=builder['trigger'],
-        ...     )
-        >>> enveloped_sin = sin_osc * decay
-        >>> out = ugentools.Out.ar(bus=0, source=enveloped_sin)
-        >>> builder.add_ugens(out)
+
+    ::
+
+        >>> with builder:
+        ...     sin_osc = ugentools.SinOsc.ar(
+        ...         frequency=builder['frequency'],
+        ...         )
+        ...     decay = ugentools.Decay.kr(
+        ...         decay_time=0.5,
+        ...         source=builder['trigger'],
+        ...         )
+        ...     enveloped_sin = sin_osc * decay
+        ...     ugentools.Out.ar(bus=0, source=enveloped_sin)
+        ...
+
+    ::
+
+        >>> synthdef = builder.build()
+        >>> graph(synthdef)
 
     """
 
@@ -38,6 +55,7 @@ class SynthDefBuilder(SupriyaObject):
     __slots__ = (
         '_parameters',
         '_ugens',
+        '_uuid',
         )
 
     ### INITIALIZER ###
@@ -47,10 +65,11 @@ class SynthDefBuilder(SupriyaObject):
         name=None,
         **kwargs
         ):
+        self._uuid = uuid.uuid4()
         self._parameters = collections.OrderedDict()
+        self._ugens = []
         for key, value in kwargs.items():
             self.add_parameter(key, value)
-        self._ugens = []
 
     ### SPECIAL METHODS ###
 
@@ -107,6 +126,8 @@ class SynthDefBuilder(SupriyaObject):
                 parameter_rate=parameter_rate,
                 name=name,
                 )
+        assert parameter._uuid is None
+        parameter._uuid = self._uuid
         self._parameters[name] = parameter
         return parameter
 
@@ -129,22 +150,23 @@ class SynthDefBuilder(SupriyaObject):
 
     def build(self, name=None, optimize=True):
         from supriya.tools import synthdeftools
-        ugens = list(self._parameters.values()) + list(self._ugens)
-        ugens = copy.deepcopy(ugens)
-        ugens = synthdeftools.SynthDef._flatten_ugens(ugens)
-        ugens, parameters = synthdeftools.SynthDef._extract_parameters(ugens)
-        (
-            control_ugens,
-            control_mapping,
-            indexed_parameters,
-            ) = synthdeftools.SynthDef._build_control_mapping(parameters)
-        synthdeftools.SynthDef._remap_controls(ugens, control_mapping)
-        ugens = control_ugens + ugens
-        synthdef = synthdeftools.SynthDef(
-            ugens,
-            name=name,
-            optimize=optimize,
-            )
+        with self:
+            ugens = list(self._parameters.values()) + list(self._ugens)
+            ugens = copy.deepcopy(ugens)
+            ugens = synthdeftools.SynthDef._flatten_ugens(ugens)
+            ugens, parameters = synthdeftools.SynthDef._extract_parameters(ugens)
+            (
+                control_ugens,
+                control_mapping,
+                indexed_parameters,
+                ) = synthdeftools.SynthDef._build_control_mapping(parameters)
+            synthdeftools.SynthDef._remap_controls(ugens, control_mapping)
+            ugens = control_ugens + ugens
+            synthdef = synthdeftools.SynthDef(
+                ugens,
+                name=name,
+                optimize=optimize,
+                )
         return synthdef
 
     def poll_ugen(
