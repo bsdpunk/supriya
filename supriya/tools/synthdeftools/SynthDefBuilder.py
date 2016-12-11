@@ -36,13 +36,13 @@ class SynthDefBuilder(SupriyaObject):
         ...         source=builder['trigger'],
         ...         )
         ...     enveloped_sin = sin_osc * decay
-        ...     ugentools.Out.ar(bus=0, source=enveloped_sin)
+        ...     out = ugentools.Out.ar(bus=0, source=enveloped_sin)
         ...
 
     ::
 
         >>> synthdef = builder.build()
-        >>> graph(synthdef)
+        >>> graph(synthdef)  # doctest: +SKIP
 
     """
 
@@ -69,7 +69,7 @@ class SynthDefBuilder(SupriyaObject):
         self._parameters = collections.OrderedDict()
         self._ugens = []
         for key, value in kwargs.items():
-            self.add_parameter(key, value)
+            self._add_parameter(key, value)
 
     ### SPECIAL METHODS ###
 
@@ -83,9 +83,27 @@ class SynthDefBuilder(SupriyaObject):
     def __getitem__(self, item):
         return self._parameters[item]
 
-    ### PUBLIC METHODS ###
+    ### PRIVATE METHODS ###
 
-    def add_parameter(self, *args):
+    def _add_ugens(self, ugens):
+        from supriya.tools import synthdeftools
+        from supriya.tools import ugentools
+        if not isinstance(ugens, collections.Sequence):
+            ugens = [ugens]
+        prototype = (
+            ugentools.UGen,
+            synthdeftools.OutputProxy,
+            synthdeftools.Parameter,
+            )
+        for ugen in ugens:
+            assert isinstance(ugen, prototype), type(ugen)
+            if isinstance(ugen, synthdeftools.OutputProxy):
+                ugen = ugen.source
+            assert ugen._uuid == self._uuid
+            if ugen not in self._ugens:
+                self._ugens.append(ugen)
+
+    def _add_parameter(self, *args):
         from supriya.tools import synthdeftools
         if 3 < len(args):
             raise ValueError(args)
@@ -131,22 +149,7 @@ class SynthDefBuilder(SupriyaObject):
         self._parameters[name] = parameter
         return parameter
 
-    def add_ugens(self, ugens):
-        from supriya.tools import synthdeftools
-        from supriya.tools import ugentools
-        if not isinstance(ugens, collections.Sequence):
-            ugens = [ugens]
-        prototype = (
-            ugentools.UGen,
-            synthdeftools.OutputProxy,
-            synthdeftools.Parameter,
-            )
-        for ugen in ugens:
-            assert isinstance(ugen, prototype), type(ugen)
-            if isinstance(ugen, synthdeftools.OutputProxy):
-                ugen = ugen.source
-            if ugen not in self._ugens:
-                self._ugens.append(ugen)
+    ### PUBLIC METHODS ###
 
     def build(self, name=None, optimize=True):
         from supriya.tools import synthdeftools
@@ -185,4 +188,4 @@ class SynthDefBuilder(SupriyaObject):
             trigger=trigger,
             trigger_id=trigger_id,
             )
-        self.add_ugens(poll)
+        self._add_ugens(poll)

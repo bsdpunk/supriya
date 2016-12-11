@@ -48,7 +48,7 @@ class Parameter(UGenMethodMixin):
         self._uuid = None
         if isinstance(value, collections.Sequence):
             value = tuple(float(_) for _ in value)
-            assert value
+            assert value, value
         else:
             value = float(value)
         self._value = value

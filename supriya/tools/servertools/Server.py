@@ -431,22 +431,22 @@ class Server(SupriyaObject):
 
             >>> from supriya import synthdeftools
             >>> from supriya import ugentools
-            >>> builder = synthdeftools.SynthDefBuilder(
+            >>> with synthdeftools.SynthDefBuilder(
             ...     amplitude=0.0,
             ...     frequency=440.0,
-            ...     )
-            >>> sin_osc = ugentools.SinOsc.ar(
-            ...     frequency=builder['frequency'],
-            ...     )
-            >>> sin_osc *= builder['amplitude']
-            >>> out = ugentools.Out.ar(
-            ...     bus=(0, 1),
-            ...     source=sin_osc,
-            ...     )
-            >>> builder.add_ugens(out)
+            ...     ) as builder:
+            ...     sin_osc = ugentools.SinOsc.ar(
+            ...         frequency=builder['frequency'],
+            ...         )
+            ...     sin_osc *= builder['amplitude']
+            ...     out = ugentools.Out.ar(
+            ...         bus=0,
+            ...         source=[sin_osc, sin_osc],
+            ...         )
+            ...
             >>> synthdef = builder.build()
             >>> synthdef.allocate()
-            <SynthDef: f1c3ea5063065be20688f82b415c1108>
+            <SynthDef: e41193ac8b7216f49ff0d477876a3bf3>
 
         ::
 
@@ -461,7 +461,7 @@ class Server(SupriyaObject):
             NODE TREE 0 group
                 1 group
                     1001 group
-                        1003 f1c3ea5063065be20688f82b415c1108
+                        1003 e41193ac8b7216f49ff0d477876a3bf3
                             amplitude: 0.0, frequency: 440.0
                     1000 group
                         1002 group
@@ -501,22 +501,22 @@ class Server(SupriyaObject):
 
             >>> from supriya import synthdeftools
             >>> from supriya import ugentools
-            >>> builder = synthdeftools.SynthDefBuilder(
+            >>> with synthdeftools.SynthDefBuilder(
             ...     amplitude=0.0,
             ...     frequency=440.0,
-            ...     )
-            >>> sin_osc = ugentools.SinOsc.ar(
-            ...     frequency=builder['frequency'],
-            ...     )
-            >>> sin_osc *= builder['amplitude']
-            >>> out = ugentools.Out.ar(
-            ...     bus=(0, 1),
-            ...     source=sin_osc,
-            ...     )
-            >>> builder.add_ugens(out)
+            ...     ) as builder:
+            ...     sin_osc = ugentools.SinOsc.ar(
+            ...         frequency=builder['frequency'],
+            ...         )
+            ...     sin_osc *= builder['amplitude']
+            ...     out = ugentools.Out.ar(
+            ...         bus=0,
+            ...         source=[sin_osc, sin_osc],
+            ...         )
+            ...
             >>> synthdef = builder.build()
             >>> synthdef.allocate()
-            <SynthDef: f1c3ea5063065be20688f82b415c1108>
+            <SynthDef: e41193ac8b7216f49ff0d477876a3bf3>
 
         ::
 
@@ -531,7 +531,7 @@ class Server(SupriyaObject):
             NODE TREE 0 group
                 1 group
                     1001 group
-                        1003 f1c3ea5063065be20688f82b415c1108
+                        1003 e41193ac8b7216f49ff0d477876a3bf3 
                     1000 group
                         1002 group
 

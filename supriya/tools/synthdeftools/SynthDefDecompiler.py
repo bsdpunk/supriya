@@ -14,12 +14,13 @@ class SynthDefDecompiler(SupriyaObject):
 
         >>> from supriya.tools import synthdeftools
         >>> from supriya.tools import ugentools
-        >>> builder = synthdeftools.SynthDefBuilder()
-        >>> parameter = builder.add_parameter('frequency', 440)
-        >>> parameter = builder.add_parameter(
-        ...     'trigger', 0, synthdeftools.ParameterRate.TRIGGER,
-        ...     )
-        >>> with builder:
+        >>> with synthdeftools.SynthDefBuilder(
+        ...     frequency=440,
+        ...     trigger=synthdeftools.Parameter(
+        ...         value=0.,
+        ...         parameter_rate=synthdeftools.ParameterRate.TRIGGER,
+        ...         ),
+        ...     ) as builder:
         ...     sin_osc = ugentools.SinOsc.ar(frequency=builder['frequency'])
         ...     decay = ugentools.Decay.kr(
         ...         decay_time=0.5,

@@ -80,7 +80,7 @@ class UGen(UGenMethodMixin):
             self._uuid = builder._uuid
         self._check_inputs_share_same_uuid()
         if self._uuid is not None:
-            builder.add_ugens(self)
+            builder._add_ugens(self)
 
     ### SPECIAL METHODS ###
 

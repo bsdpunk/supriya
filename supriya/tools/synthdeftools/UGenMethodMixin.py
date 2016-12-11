@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
 import collections
+import copy
 from supriya.tools.systemtools.SupriyaObject import SupriyaObject
 
 
@@ -289,10 +290,7 @@ class UGenMethodMixin(SupriyaObject):
 
         Returns GraphvizGraph instance.
         """
-        from supriya.tools import synthdeftools
-        builder = synthdeftools.SynthDefBuilder()
-        builder.add_ugens(self)
-        synthdef = builder.build(optimize=False)
+        synthdef = self._clone()
         result = synthdef.__graph__()
         return result
 
@@ -1558,10 +1556,7 @@ class UGenMethodMixin(SupriyaObject):
 
         Returns string.
         """
-        from supriya.tools import synthdeftools
-        builder = synthdeftools.SynthDefBuilder()
-        builder.add_ugens(self)
-        synthdef = builder.build(optimize=False)
+        synthdef = self._clone()
         result = str(synthdef)
         return result
 
@@ -1671,6 +1666,37 @@ class UGenMethodMixin(SupriyaObject):
     __rtruediv__ = __rdiv__
 
     ### PRIVATE METHODS ###
+
+    def _clone(self):
+        def recurse(uuid, ugen, all_ugens):
+            if hasattr(ugen, 'inputs'):
+                for input_ in ugen.inputs:
+                    if not isinstance(input_, synthdeftools.OutputProxy):
+                        continue
+                    input_ = input_.source
+                    input_._uuid = uuid
+                    recurse(uuid, input_, all_ugens)
+            ugen._uuid = uuid
+            if ugen not in all_ugens:
+                all_ugens.append(ugen)
+
+        from supriya.tools import synthdeftools
+        from supriya.tools import ugentools
+        builder = synthdeftools.SynthDefBuilder()
+        ugens = copy.deepcopy(self)
+        if not isinstance(ugens, synthdeftools.UGenArray):
+            ugens = [ugens]
+        all_ugens = []
+        for ugen in ugens:
+            if isinstance(ugen, synthdeftools.OutputProxy):
+                ugen = ugen.source
+            recurse(builder._uuid, ugen, all_ugens)
+        for ugen in all_ugens:
+            if isinstance(ugen, ugentools.UGen):
+                builder._add_ugens(ugen)
+            else:
+                builder._add_parameter(ugen)
+        return builder.build(optimize=False)
 
     @staticmethod
     def _compute_binary_op(left, right, operator):
@@ -2135,7 +2161,7 @@ class UGenMethodMixin(SupriyaObject):
         """
         from supriya import synthdeftools
         return synthdeftools.UGenMethodMixin._compute_unary_op(
-            source,
+            self,
             synthdeftools.UnaryOperator.EXPONENTIAL,
             )
 
