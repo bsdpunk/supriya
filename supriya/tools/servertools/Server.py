@@ -391,8 +391,8 @@ class Server(SupriyaObject):
         if kwargs:
             server_options = new(server_options, **kwargs)
         options_string = server_options.as_options_string(self.port)
-        #command = '{} {} -V -1'.format(scsynth_path, options_string)
-        command = '{} {}'.format(scsynth_path, options_string)
+        command = '{} {} -V -1'.format(scsynth_path, options_string)
+        #command = '{} {}'.format(scsynth_path, options_string)
         if self.debug_subprocess:
             print(command)
         self._server_process = subprocess.Popen(command, shell=True)
@@ -554,6 +554,7 @@ class Server(SupriyaObject):
         from supriya.tools import requesttools
         if not self.is_running:
             return
+        PubSub.notify('server-quitting')
         if self.recorder.is_recording:
             self.recorder.stop()
         request = requesttools.QuitRequest()
