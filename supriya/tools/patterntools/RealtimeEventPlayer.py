@@ -176,10 +176,10 @@ class RealtimeEventPlayer(EventPlayer):
     ### PUBLIC METHODS ###
 
     def notify(self, topic, event):
-        if topic == 'server-quit':
+        if topic == 'server-quitting':
             self.stop()
 
-    @systemtools.PubSub.subscribe_before('server-quit')
+    @systemtools.PubSub.subscribe_before('server-quitting')
     def start(self):
         if not self._server.is_running:
             return
@@ -197,7 +197,7 @@ class RealtimeEventPlayer(EventPlayer):
             absolute=True,
             )
 
-    @systemtools.PubSub.unsubscribe_after('server-quit')
+    @systemtools.PubSub.unsubscribe_after('server-quitting')
     def stop(self):
         self._clock.cancel(self)
         self._iterator = None

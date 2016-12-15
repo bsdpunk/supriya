@@ -55,11 +55,11 @@ class Pbus(EventPattern):
         exprs = self._handle_first(expr, state)
         while len(exprs) > 1:
             expr = exprs.pop(0)
-            print('    YIELDING (A):', type(expr).__name__, expr.get('uuid'))
+            #print('    YIELDING (A):', type(expr).__name__, expr.get('uuid'))
             should_stop = yield expr
             yield_count += 1
             if should_stop:
-                print('    SHOULD STOP (A)')
+                #print('    SHOULD STOP (A)')
                 iterator.send(True)
                 exprs[:] = [exprs[0]]
                 break
@@ -69,10 +69,10 @@ class Pbus(EventPattern):
                     expr = self._coerce_iterator_output(expr, state)
                     exprs.append(expr)
                     expr = exprs.pop(0)
-                    print('    YIELDING (B):', type(expr).__name__, expr.get('uuid'))
+                    #print('    YIELDING (B):', type(expr).__name__, expr.get('uuid'))
                     should_stop = yield expr
                     if should_stop:
-                        print('    SHOULD STOP (B)')
+                        #print('    SHOULD STOP (B)')
                         iterator.send(True)
                         break
             except StopIteration:
@@ -80,7 +80,7 @@ class Pbus(EventPattern):
         assert len(exprs) == 1
         exprs.extend(self._handle_last(exprs.pop(), state, yield_count))
         for expr in exprs:
-            print('    YIELDING (C):', type(expr).__name__, expr.get('uuid'))
+            #print('    YIELDING (C):', type(expr).__name__, expr.get('uuid'))
             yield expr
 
     ### PRIVATE METHODS ###
