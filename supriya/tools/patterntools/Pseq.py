@@ -53,13 +53,24 @@ class Pseq(Pattern):
 
     ### PRIVATE METHODS ###
 
-    def _iterate(self, state=None):
+    def __iter__(self):
+        should_stop = False
         for _ in self._loop(self._repetitions):
             for x in self._sequence:
-                if isinstance(x, Pattern):
-                    yield from x
-                else:
-                    yield x
+                if not isinstance(x, Pattern):
+                    x = (_ for _ in [x])
+                iterator = iter(x)
+                try:
+                    expr = next(iterator)
+                except StopIteration:
+                    continue
+                should_stop = yield expr
+                while True:
+                    try:
+                        expr = iterator.send(should_stop)
+                        should_stop = yield expr
+                    except StopIteration:
+                        break
 
     ### PUBLIC PROPERTIES ###
 

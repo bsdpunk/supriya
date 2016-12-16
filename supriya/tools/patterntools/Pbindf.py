@@ -20,7 +20,7 @@ class Pbindf(EventPattern):
 
     def __init__(self, event_pattern=None, **patterns):
         from supriya.tools import patterntools
-        assert isinstance(event_pattern, patterntools.EventPattern)
+        assert isinstance(event_pattern, patterntools.Pattern)
         self._event_pattern = event_pattern
         self._patterns = tuple(sorted(patterns.items()))
 
@@ -28,6 +28,30 @@ class Pbindf(EventPattern):
 
     def __getitem__(self, item):
         return self.patterns[item]
+
+    def __iter__(self):
+        should_stop = False
+        event_iterator = iter(self._event_pattern)
+        key_iterators = self._coerce_pattern_pairs(self._patterns)
+        while True:
+            try:
+                expr = next(event_iterator)
+                expr = self._coerce_iterator_output(expr)
+            except StopIteration:
+                return
+            template_dict = {}
+            for name, key_iterator in key_iterators.items():
+                try:
+                    template_dict[name] = next(key_iterator)
+                except StopIteration:
+                    return
+            expr = new(expr, **template_dict)
+            should_stop = yield expr
+            if should_stop:
+                expr = event_iterator.send(True)
+                expr = self._coerce_iterator_output(expr)
+                expr = new(expr, **template_dict)
+                break
 
     ### PRIVATE METHODS ###
 
@@ -51,22 +75,6 @@ class Pbindf(EventPattern):
             storage_format_kwargs_names=names,
             template_names=names,
             )
-
-    def _iterate(self, state=None):
-        event_pattern = iter(self._event_pattern)
-        patterns = self._coerce_pattern_pairs(self._patterns)
-        while True:
-            try:
-                event = next(event_pattern)
-            except StopIteration:
-                return
-            template_dict = {}
-            for name, pattern in patterns.items():
-                try:
-                    template_dict[name] = next(pattern)
-                except StopIteration:
-                    return
-            yield new(event, **template_dict)
 
     ### PUBLIC PROPERTIES ###
 

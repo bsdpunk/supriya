@@ -31,11 +31,14 @@ class Pwhite(Pattern):
             return (number * (maximum - minimum)) + minimum
         rng = self._get_rng()
         for _ in self._loop(self._repetitions):
-            yield self._process_recursive(
+            expr = self._process_recursive(
                 self._minimum,
                 self._maximum,
                 procedure,
                 )
+            should_stop = yield expr
+            if should_stop:
+                return
 
     ### PUBLIC PROPERTIES ###
 

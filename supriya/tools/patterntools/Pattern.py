@@ -93,7 +93,6 @@ class Pattern(SupriyaValueObject):
         return patterntools.Pbinop(self, '-', expr)
 
     def __iter__(self):
-        yield_count = 0
         should_stop = False
         state = self._setup_state()
         iterator = self._iterate(state)
@@ -102,30 +101,29 @@ class Pattern(SupriyaValueObject):
             expr = self._coerce_iterator_output(expr, state)
         except StopIteration:
             return
-        exprs = self._handle_first(expr, state)
-        while len(exprs) > 1:
-            expr = exprs.pop(0)
-            should_stop = yield expr
-            yield_count += 1
+        peripheral_pairs = self._setup_peripherals(state)
+        peripheral_stops = []
+        for peripheral_pair in peripheral_pairs:
+            peripheral = peripheral_pair[0]
+            should_stop = yield peripheral
+            if len(peripheral_pair) > 1:
+                peripheral_stops.extend(peripheral_pairs[1:])
             if should_stop:
-                iterator.send(True)
-                exprs[:] = [exprs[0]]
                 break
         if not should_stop:
-            try:
-                for expr in iterator:
+            should_stop = yield expr
+            while True:
+                try:
+                    expr = iterator.send(should_stop)
                     expr = self._coerce_iterator_output(expr, state)
-                    exprs.append(expr)
-                    expr = exprs.pop(0)
                     should_stop = yield expr
-                    if should_stop:
-                        iterator.send(True)
-                        break
-            except StopIteration:
-                pass
-        exprs.extend(self._handle_last(exprs.pop(), state, yield_count))
-        for expr in exprs:
+                except StopIteration:
+                    break
+        expr = self._process_last_expr()
+        if expr:
             yield expr
+        for peripheral in reversed(peripheral_stops):
+            yield peripheral
 
     ### PRIVATE METHODS ###
 
@@ -143,7 +141,9 @@ class Pattern(SupriyaValueObject):
 
     @classmethod
     def _freeze_recursive(cls, value):
-        if (
+        if isinstance(value, str):
+            return value
+        elif (
             isinstance(value, collections.Sequence) and
             not isinstance(value, Pattern)
             ):
@@ -182,16 +182,6 @@ class Pattern(SupriyaValueObject):
             cls._rngs[identifier] = rng
         return rng
 
-    def _handle_first(self, expr, state=None):
-        return [expr]
-
-    def _handle_last(self, expr, state=None, yield_count=0):
-        return [expr]
-
-    @abc.abstractmethod
-    def _iterate(self, state=None):
-        raise NotImplementedError
-
     @classmethod
     def _loop(cls, repetitions=None):
         if repetitions is None:
@@ -222,8 +212,14 @@ class Pattern(SupriyaValueObject):
             result.append(cls._process_recursive(one, two, procedure))
         return result
 
+    def _process_last_expr(self):
+        pass
+
     def _setup_state(self):
-        return None
+        return {}
+
+    def _setup_peripherals(self, state=None):
+        return ()
 
     ### PUBLIC PROPERTIES ###
 

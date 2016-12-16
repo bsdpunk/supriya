@@ -43,33 +43,33 @@ class NonrealtimeEventPlayer(EventPlayer):
         offset = offset or 0
         iterator = iter(self._pattern)
         uuids = {}
+        try:
+            event = next(iterator)
+        except StopIteration:
+            return offset
+        event._perform_nonrealtime(
+            session=self.session,
+            uuids=uuids,
+            maximum_offset=maximum_offset,
+            offset=offset,
+            )
+        offset += event.delta
         while True:
+            should_stop = False
+            if maximum_offset is not None:
+                should_stop = offset >= maximum_offset
             try:
-                if should_stop:
-                    print('FETCHING VIA SEND')
-                    event = iterator.send(True)
-                else:
-                    print('FETCHING VIA NEXT')
-                    event = next(iterator)
+                event = iterator.send(should_stop)
             except StopIteration:
-                print('    TERMINATING', offset)
-                break
-            self._debug(event, offset)
+                return offset
+            print(offset, maximum_offset, event)
             event._perform_nonrealtime(
                 session=self.session,
                 uuids=uuids,
                 maximum_offset=maximum_offset,
                 offset=offset,
                 )
-            if event.delta:
-                offset += event.delta
-                if (
-                    not should_stop and
-                    maximum_offset and
-                    maximum_offset <= offset
-                ):
-                    print('MAXED OUT:', offset, maximum_offset)
-                    should_stop = True
+            offset += event.delta
         return offset
 
     ### PRIVATE METHODS ###

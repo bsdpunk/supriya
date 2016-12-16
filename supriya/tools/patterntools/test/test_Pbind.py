@@ -26,6 +26,16 @@ class TestCase(TestCase):
         frequency=patterntools.Pseq([220, 440, 330, 660], 2),
         )
 
+    def test___iter___(self):
+        events = list(self.pbind_01)
+        assert len(events) == 3
+
+    def test_send(self):
+        iterator = iter(self.pbind_01)
+        next(iterator)
+        with self.assertRaises(StopIteration):
+            iterator.send(True)
+
     def test_manual_incommunicado_pbind_01(self):
         lists, deltas = self.manual_incommunicado(self.pbind_01)
         assert lists == [

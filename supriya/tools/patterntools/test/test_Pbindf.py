@@ -13,7 +13,7 @@ class TestCase(TestCase):
         pan=patterntools.Pseq([0., 0.5, 1.0, 0.5]),
         )
 
-    def test_iter(self):
+    def test___iter__(self):
         events = [event for event in self.pattern]
         assert len(events) == 3
         self.compare_strings(
@@ -52,3 +52,11 @@ class TestCase(TestCase):
             ''',
             format(events[2]),
             )
+
+    def test_send(self):
+        iterator = iter(self.pattern)
+        event_one = next(iterator)
+        event_two = iterator.send(True)
+        assert event_one == event_two
+        with self.assertRaises(StopIteration):
+            next(iterator)
