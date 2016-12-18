@@ -54,7 +54,17 @@ class Pbus(EventPattern):
         expr = new(expr, **kwargs)
         return expr
 
-    def _handle_first(self, expr, state):
+    def _iterate(self, state=None):
+        return iter(self.pattern)
+
+    def _setup_state(self):
+        return {
+            'bus_uuid': uuid.uuid4(),
+            'link_uuid': uuid.uuid4(),
+            'group_uuid': uuid.uuid4(),
+            }
+
+    def _setup_periperals(self, expr, state):
         from supriya import synthdefs
         from supriya.tools import patterntools
         from supriya.tools import synthdeftools
@@ -67,15 +77,15 @@ class Pbus(EventPattern):
         else:
             link_synthdef_name = 'system_link_control_{}'.format(channel_count)
         link_synthdef = getattr(synthdefs, link_synthdef_name)
-        bus_event = patterntools.BusEvent(
+        start_bus_event = patterntools.BusEvent(
             calculation_rate=self.calculation_rate,
             channel_count=channel_count,
             uuid=state['bus_uuid'],
             )
-        group_event = patterntools.GroupEvent(
+        start_group_event = patterntools.GroupEvent(
             uuid=state['group_uuid'],
             )
-        link_event = patterntools.SynthEvent(
+        start_link_event = patterntools.SynthEvent(
             add_action='ADD_AFTER',
             amplitude=1.0,
             in_=state['bus_uuid'],
@@ -83,39 +93,28 @@ class Pbus(EventPattern):
             target_node=state['group_uuid'],
             uuid=state['link_uuid'],
             )
-        return [bus_event, group_event, link_event, expr]
-
-    def _handle_last(self, expr, state=None, yield_count=0):
-        from supriya.tools import patterntools
-        delta = expr.delta
-        delta += (self._release_time or 0)
-        expr = new(expr, delta=delta)
-        link_event = patterntools.SynthEvent(
+        stop_link_event = patterntools.SynthEvent(
             uuid=state['link_uuid'],
             is_stop=True,
             )
-        group_event = patterntools.GroupEvent(
+        stop_group_event = patterntools.GroupEvent(
             uuid=state['group_uuid'],
             is_stop=True,
             )
-        bus_event = patterntools.BusEvent(
+        stop_bus_event = patterntools.BusEvent(
             uuid=state['bus_uuid'],
             is_stop=True,
             )
-        events = [link_event, group_event, bus_event]
-        events = events[-yield_count:]
-        events.insert(0, expr)
-        return events
+        peripheral_pairs = [
+            (start_bus_event, stop_bus_event),
+            (start_group_event, stop_group_event),
+            (start_link_event, stop_link_event),
+            ]
+        return peripheral_pairs
 
-    def _iterate(self, state=None):
-        return iter(self.pattern)
-
-    def _setup_state(self):
-        return {
-            'bus_uuid': uuid.uuid4(),
-            'link_uuid': uuid.uuid4(),
-            'group_uuid': uuid.uuid4(),
-            }
+    def _process_last_expr(self, state):
+        from supriya.tools import patterntools
+        return patterntools.NullEvent(delta=self._release_time or 0)
 
     ### PUBLIC PROPERTIES ###
 

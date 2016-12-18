@@ -101,7 +101,7 @@ class Pattern(SupriyaValueObject):
             expr = self._coerce_iterator_output(expr, state)
         except StopIteration:
             return
-        peripheral_pairs = self._setup_peripherals(state)
+        peripheral_pairs = self._setup_peripherals(expr, state)
         peripheral_stops = []
         for peripheral_pair in peripheral_pairs:
             peripheral = peripheral_pair[0]
@@ -119,7 +119,7 @@ class Pattern(SupriyaValueObject):
                     should_stop = yield expr
                 except StopIteration:
                     break
-        expr = self._process_last_expr()
+        expr = self._process_last_expr(state)
         if expr:
             yield expr
         for peripheral in reversed(peripheral_stops):
@@ -212,13 +212,13 @@ class Pattern(SupriyaValueObject):
             result.append(cls._process_recursive(one, two, procedure))
         return result
 
-    def _process_last_expr(self):
+    def _process_last_expr(self, state=None):
         pass
 
     def _setup_state(self):
         return {}
 
-    def _setup_peripherals(self, state=None):
+    def _setup_peripherals(self, expr=None, state=None):
         return ()
 
     ### PUBLIC PROPERTIES ###
