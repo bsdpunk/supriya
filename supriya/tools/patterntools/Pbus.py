@@ -64,7 +64,7 @@ class Pbus(EventPattern):
             'group_uuid': uuid.uuid4(),
             }
 
-    def _setup_periperals(self, expr, state):
+    def _setup_peripherals(self, expr, state):
         from supriya import synthdefs
         from supriya.tools import patterntools
         from supriya.tools import synthdeftools

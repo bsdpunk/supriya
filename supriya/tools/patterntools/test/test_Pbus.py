@@ -18,6 +18,82 @@ class TestCase(TestCase):
         release_time=0.25,
         )
 
+    # TODO: Add flag to sub UUID string for deterministic letter: A, B, C
+    def test___iter__(self):
+        events = list(self.pattern)
+        self.compare_objects_as_strings(
+            events,
+            '''
+            supriya.tools.patterntools.BusEvent(
+                calculation_rate=supriya.tools.synthdeftools.CalculationRate.AUDIO,
+                channel_count=2,
+                delta=0,
+                uuid=UUID('A'),
+                )
+            supriya.tools.patterntools.GroupEvent(
+                delta=0,
+                uuid=UUID('B'),
+                )
+            supriya.tools.patterntools.SynthEvent(
+                add_action=supriya.tools.servertools.AddAction.ADD_AFTER,
+                amplitude=1.0,
+                delta=0,
+                in_=UUID('A'),
+                synthdef=<supriya.tools.synthdeftools.SynthDef('454b69a7c505ddecc5b39762d291a5ec')>,
+                target_node=UUID('B'),
+                uuid=UUID('C'),
+                )
+            supriya.tools.patterntools.NoteEvent(
+                amplitude=1.0,
+                duration=1.0,
+                frequency=440,
+                is_stop=True,
+                out=UUID('A'),
+                target_node=UUID('B'),
+                uuid=UUID('D'),
+                )
+            supriya.tools.patterntools.NoteEvent(
+                amplitude=1.0,
+                duration=2.0,
+                frequency=660,
+                is_stop=True,
+                out=UUID('A'),
+                target_node=UUID('B'),
+                uuid=UUID('E'),
+                )
+            supriya.tools.patterntools.NoteEvent(
+                amplitude=1.0,
+                duration=3.0,
+                frequency=880,
+                is_stop=True,
+                out=UUID('A'),
+                target_node=UUID('B'),
+                uuid=UUID('F'),
+                )
+            supriya.tools.patterntools.NullEvent(
+                delta=0.25,
+                )
+            supriya.tools.patterntools.SynthEvent(
+                delta=0,
+                is_stop=True,
+                uuid=UUID('C'),
+                )
+            supriya.tools.patterntools.GroupEvent(
+                delta=0,
+                is_stop=True,
+                uuid=UUID('B'),
+                )
+            supriya.tools.patterntools.BusEvent(
+                calculation_rate=supriya.tools.synthdeftools.CalculationRate.AUDIO,
+                channel_count=1,
+                delta=0,
+                is_stop=True,
+                uuid=UUID('A'),
+                )
+            ''',
+            replace_uuids=True,
+            )
+
     def test_manual_incommunicado(self):
         lists, deltas = self.manual_incommunicado(self.pattern)
         assert lists == [

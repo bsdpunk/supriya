@@ -104,10 +104,9 @@ class Pattern(SupriyaValueObject):
         peripheral_pairs = self._setup_peripherals(expr, state)
         peripheral_stops = []
         for peripheral_pair in peripheral_pairs:
-            peripheral = peripheral_pair[0]
-            should_stop = yield peripheral
-            if len(peripheral_pair) > 1:
-                peripheral_stops.extend(peripheral_pairs[1:])
+            peripheral_start, peripheral_stop = peripheral_pair
+            should_stop = yield peripheral_start
+            peripheral_stops.append(peripheral_stop)
             if should_stop:
                 break
         if not should_stop:
