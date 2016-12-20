@@ -19,7 +19,6 @@ class GroupEvent(Event):
         delta=0,
         is_stop=None,
         target_node=None,
-        release_time=None,
         uuid=None,
         ):
         if add_action is not None:
@@ -27,12 +26,13 @@ class GroupEvent(Event):
         is_stop = is_stop or None
         if is_stop:
             is_stop = bool(is_stop)
+            add_action = None
+            target_node = None
         Event.__init__(
             self,
             add_action=add_action,
             delta=delta,
             is_stop=is_stop,
-            release_time=release_time,
             target_node=target_node,
             uuid=uuid,
             )
@@ -60,8 +60,6 @@ class GroupEvent(Event):
         else:
             group = uuids[group_uuid]
             duration = offset - group.start_offset
-            if self['release_time']:
-                duration += self['release_time']
             group.set_duration(duration)
 
     def _perform_realtime(

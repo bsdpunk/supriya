@@ -45,13 +45,17 @@ class Pbus(EventPattern):
     def _coerce_iterator_output(self, expr, state):
         from supriya.tools import patterntools
         expr = super(Pbus, self)._coerce_iterator_output(expr)
-        kwargs = {}
-        if expr.get('target_node') is None:
-            kwargs['target_node'] = state['group_uuid']
-        if (isinstance(expr, patterntools.NoteEvent) and
-            expr.get('out') is None):
-            kwargs['out'] = state['bus_uuid']
-        expr = new(expr, **kwargs)
+        if (
+            isinstance(expr, patterntools.NoteEvent) or
+            not expr.get('is_stop')
+            ):
+            kwargs = {}
+            if expr.get('target_node') is None:
+                kwargs['target_node'] = state['group_uuid']
+            if (isinstance(expr, patterntools.NoteEvent) and
+                expr.get('out') is None):
+                kwargs['out'] = state['bus_uuid']
+            expr = new(expr, **kwargs)
         return expr
 
     def _iterate(self, state=None):

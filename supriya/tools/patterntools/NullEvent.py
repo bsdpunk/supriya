@@ -14,6 +14,7 @@ class NullEvent(Event):
         self,
         delta=0,
         uuid=None,
+        **kwargs
         ):
         Event.__init__(
             self,

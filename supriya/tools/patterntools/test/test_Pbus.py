@@ -18,7 +18,6 @@ class TestCase(TestCase):
         release_time=0.25,
         )
 
-    # TODO: Add flag to sub UUID string for deterministic letter: A, B, C
     def test___iter__(self):
         events = list(self.pattern)
         self.compare_objects_as_strings(
@@ -84,8 +83,169 @@ class TestCase(TestCase):
                 uuid=UUID('B'),
                 )
             supriya.tools.patterntools.BusEvent(
+                delta=0,
+                is_stop=True,
+                uuid=UUID('A'),
+                )
+            ''',
+            replace_uuids=True,
+            )
+
+    def test_send_01(self):
+        events, iterator = [], iter(self.pattern)
+        for _ in range(1):
+            events.append(next(iterator))
+        try:
+            iterator.send(True)
+            events.extend(iterator)
+        except StopIteration:
+            pass
+        self.compare_objects_as_strings(
+            events,
+            '''
+            supriya.tools.patterntools.BusEvent(
                 calculation_rate=supriya.tools.synthdeftools.CalculationRate.AUDIO,
-                channel_count=1,
+                channel_count=2,
+                delta=0,
+                uuid=UUID('A'),
+                )
+            supriya.tools.patterntools.BusEvent(
+                delta=0,
+                is_stop=True,
+                uuid=UUID('A'),
+                )
+            ''',
+            replace_uuids=True,
+            )
+
+    def test_send_02(self):
+        events, iterator = [], iter(self.pattern)
+        for _ in range(2):
+            events.append(next(iterator))
+        iterator.send(True)
+        events.extend(iterator)
+        self.compare_objects_as_strings(
+            events,
+            '''
+            supriya.tools.patterntools.BusEvent(
+                calculation_rate=supriya.tools.synthdeftools.CalculationRate.AUDIO,
+                channel_count=2,
+                delta=0,
+                uuid=UUID('A'),
+                )
+            supriya.tools.patterntools.GroupEvent(
+                delta=0,
+                uuid=UUID('B'),
+                )
+            supriya.tools.patterntools.GroupEvent(
+                delta=0,
+                is_stop=True,
+                uuid=UUID('B'),
+                )
+            supriya.tools.patterntools.BusEvent(
+                delta=0,
+                is_stop=True,
+                uuid=UUID('A'),
+                )
+            ''',
+            replace_uuids=True,
+            )
+
+    def test_send_03(self):
+        events, iterator = [], iter(self.pattern)
+        for _ in range(3):
+            events.append(next(iterator))
+        iterator.send(True)
+        events.extend(iterator)
+        self.compare_objects_as_strings(
+            events,
+            '''
+            supriya.tools.patterntools.BusEvent(
+                calculation_rate=supriya.tools.synthdeftools.CalculationRate.AUDIO,
+                channel_count=2,
+                delta=0,
+                uuid=UUID('A'),
+                )
+            supriya.tools.patterntools.GroupEvent(
+                delta=0,
+                uuid=UUID('B'),
+                )
+            supriya.tools.patterntools.SynthEvent(
+                add_action=supriya.tools.servertools.AddAction.ADD_AFTER,
+                amplitude=1.0,
+                delta=0,
+                in_=UUID('A'),
+                synthdef=<supriya.tools.synthdeftools.SynthDef('454b69a7c505ddecc5b39762d291a5ec')>,
+                target_node=UUID('B'),
+                uuid=UUID('C'),
+                )
+            supriya.tools.patterntools.SynthEvent(
+                delta=0,
+                is_stop=True,
+                uuid=UUID('C'),
+                )
+            supriya.tools.patterntools.GroupEvent(
+                delta=0,
+                is_stop=True,
+                uuid=UUID('B'),
+                )
+            supriya.tools.patterntools.BusEvent(
+                delta=0,
+                is_stop=True,
+                uuid=UUID('A'),
+                )
+            ''',
+            replace_uuids=True,
+            )
+
+    def test_send_04(self):
+        events, iterator = [], iter(self.pattern)
+        for _ in range(4):
+            events.append(next(iterator))
+        iterator.send(True)
+        events.extend(iterator)
+        self.compare_objects_as_strings(
+            events,
+            '''
+            supriya.tools.patterntools.BusEvent(
+                calculation_rate=supriya.tools.synthdeftools.CalculationRate.AUDIO,
+                channel_count=2,
+                delta=0,
+                uuid=UUID('A'),
+                )
+            supriya.tools.patterntools.GroupEvent(
+                delta=0,
+                uuid=UUID('B'),
+                )
+            supriya.tools.patterntools.SynthEvent(
+                add_action=supriya.tools.servertools.AddAction.ADD_AFTER,
+                amplitude=1.0,
+                delta=0,
+                in_=UUID('A'),
+                synthdef=<supriya.tools.synthdeftools.SynthDef('454b69a7c505ddecc5b39762d291a5ec')>,
+                target_node=UUID('B'),
+                uuid=UUID('C'),
+                )
+            supriya.tools.patterntools.NoteEvent(
+                amplitude=1.0,
+                duration=1.0,
+                frequency=440,
+                is_stop=True,
+                out=UUID('A'),
+                target_node=UUID('B'),
+                uuid=UUID('D'),
+                )
+            supriya.tools.patterntools.SynthEvent(
+                delta=0,
+                is_stop=True,
+                uuid=UUID('C'),
+                )
+            supriya.tools.patterntools.GroupEvent(
+                delta=0,
+                is_stop=True,
+                uuid=UUID('B'),
+                )
+            supriya.tools.patterntools.BusEvent(
                 delta=0,
                 is_stop=True,
                 uuid=UUID('A'),
@@ -277,66 +437,3 @@ class TestCase(TestCase):
                 ['/n_set', 1002, 'gate', 0]]],
             [3.0, [['/n_set', 1003, 'gate', 0]]],
             [3.25, [['/n_free', 1000], ['/n_set', 1001, 'gate', 0], [0]]]]
-
-    def test_send_01(self):
-        events, iterator = [], iter(self.pattern)
-        for _ in range(4):
-            events.append(next(iterator))
-        iterator.send(True)
-        events.extend(iterator)
-        assert [
-            (type(x).__name__, x.get('is_stop') or False)
-            for x in events] == [
-            ('BusEvent', False),
-            ('GroupEvent', False),
-            ('SynthEvent', False),
-            ('NoteEvent', True),
-            ('SynthEvent', True),
-            ('GroupEvent', True),
-            ('BusEvent', True),
-            ]
-
-    def test_send_02(self):
-        events, iterator = [], iter(self.pattern)
-        for _ in range(3):
-            events.append(next(iterator))
-        iterator.send(True)
-        events.extend(iterator)
-        assert [
-            (type(x).__name__, x.get('is_stop') or False)
-            for x in events] == [
-            ('BusEvent', False),
-            ('GroupEvent', False),
-            ('SynthEvent', False),
-            ('SynthEvent', True),
-            ('GroupEvent', True),
-            ('BusEvent', True),
-            ]
-
-    def test_send_03(self):
-        events, iterator = [], iter(self.pattern)
-        for _ in range(2):
-            events.append(next(iterator))
-        iterator.send(True)
-        events.extend(iterator)
-        assert [
-            (type(x).__name__, x.get('is_stop') or False)
-            for x in events] == [
-            ('BusEvent', False),
-            ('GroupEvent', False),
-            ('GroupEvent', True),
-            ('BusEvent', True),
-            ]
-
-    def test_send_04(self):
-        events, iterator = [], iter(self.pattern)
-        for _ in range(1):
-            events.append(next(iterator))
-        iterator.send(True)
-        events.extend(iterator)
-        assert [
-            (type(x).__name__, x.get('is_stop') or False)
-            for x in events] == [
-            ('BusEvent', False),
-            ('BusEvent', True),
-            ]

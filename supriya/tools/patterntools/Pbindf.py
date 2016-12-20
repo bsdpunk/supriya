@@ -29,30 +29,6 @@ class Pbindf(EventPattern):
     def __getitem__(self, item):
         return self.patterns[item]
 
-    def __iter__(self):
-        should_stop = False
-        event_iterator = iter(self._event_pattern)
-        key_iterators = self._coerce_pattern_pairs(self._patterns)
-        while True:
-            try:
-                expr = next(event_iterator)
-                expr = self._coerce_iterator_output(expr)
-            except StopIteration:
-                return
-            template_dict = {}
-            for name, key_iterator in key_iterators.items():
-                try:
-                    template_dict[name] = next(key_iterator)
-                except StopIteration:
-                    return
-            expr = new(expr, **template_dict)
-            should_stop = yield expr
-            if should_stop:
-                expr = event_iterator.send(True)
-                expr = self._coerce_iterator_output(expr)
-                expr = new(expr, **template_dict)
-                break
-
     ### PRIVATE METHODS ###
 
     def _coerce_pattern_pairs(self, patterns):
@@ -75,6 +51,28 @@ class Pbindf(EventPattern):
             storage_format_kwargs_names=names,
             template_names=names,
             )
+
+    def _iterate(self, state=None):
+        should_stop = False
+        event_iterator = iter(self._event_pattern)
+        key_iterators = self._coerce_pattern_pairs(self._patterns)
+        template_dict = {}
+        while True:
+            try:
+                if not should_stop:
+                    expr = next(event_iterator)
+                else:
+                    expr = event_iterator.send(True)
+            except StopIteration:
+                return
+            expr = self._coerce_iterator_output(expr)
+            for name, key_iterator in key_iterators.items():
+                try:
+                    template_dict[name] = next(key_iterator)
+                except StopIteration:
+                    continue
+            expr = new(expr, **template_dict)
+            should_stop = yield expr
 
     ### PUBLIC PROPERTIES ###
 

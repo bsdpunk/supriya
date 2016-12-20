@@ -30,40 +30,38 @@ class Pgpar(Ppar):
 
     ### PRIVATE METHODS ###
 
-    def _coerce_iterator_output(self, event, state):
-        iterator = event.get('_iterator')
-        group_uuid = state[2][iterator]
-        return new(event, target_node=group_uuid, _iterator=None)
+    def _coerce_iterator_output(self, expr, state):
+        from supriya.tools import patterntools
+        iterator = expr.get('_iterator')
+        kwargs = {'_iterator': None}
+        if (
+            isinstance(expr, patterntools.NoteEvent) or
+            not expr.get('is_stop')
+            ):
+            kwargs['target_node'] = state[2][iterator]
+        return new(expr, **kwargs)
 
-    def _handle_first(self, expr, state):
+    def _process_last_expr(self, state):
+        from supriya.tools import patterntools
+        delta = self._release_time or 0
+        if delta:
+            return patterntools.NullEvent(delta=delta)
+
+    def _setup_peripherals(self, expr, state):
         from supriya.tools import patterntools
         _, group_uuids, _ = state
-        events = []
+        peripheral_pairs = []
         for group_uuid in group_uuids:
-            group_event = patterntools.GroupEvent(
+            start_group_event = patterntools.GroupEvent(
                 uuid=group_uuid,
                 add_action='ADD_TO_TAIL',
                 )
-            events.append(group_event)
-        events.append(expr)
-        return events
-
-    def _handle_last(self, expr, state=None, yield_count=0):
-        from supriya.tools import patterntools
-        _, group_uuids, _ = state
-        delta = expr.delta
-        delta += (self._release_time or 0)
-        expr = new(expr, delta=delta)
-        events = []
-        for group_uuid in group_uuids:
-            group_event = patterntools.GroupEvent(
+            stop_group_event = patterntools.GroupEvent(
                 uuid=group_uuid,
                 is_stop=True,
                 )
-            events.append(group_event)
-        events = events[-yield_count:]
-        events.insert(0, expr)
-        return events
+            peripheral_pairs.append((start_group_event, stop_group_event))
+        return peripheral_pairs
 
     def _setup_state(self):
         queue = PriorityQueue()

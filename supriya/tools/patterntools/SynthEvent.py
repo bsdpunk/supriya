@@ -28,6 +28,10 @@ class SynthEvent(Event):
         is_stop = is_stop or None
         if is_stop:
             is_stop = bool(is_stop)
+            add_action = None
+            synthdef = None
+            target_node = None
+            settings = {}
         Event.__init__(
             self,
             add_action=add_action,

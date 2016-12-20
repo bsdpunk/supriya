@@ -21,6 +21,88 @@ class TestCase(TestCase):
             ),
         ])
 
+    def test___iter__(self):
+        events = list(self.pattern)
+        self.compare_objects_as_strings(
+            events,
+            '''
+            supriya.tools.patterntools.NoteEvent(
+                amplitude=1.0,
+                delta=0.0,
+                duration=1.0,
+                frequency=440,
+                uuid=UUID('A'),
+                )
+            supriya.tools.patterntools.NoteEvent(
+                amplitude=1.0,
+                delta=0.75,
+                duration=0.75,
+                frequency=222,
+                is_stop=True,
+                uuid=UUID('B'),
+                )
+            supriya.tools.patterntools.NoteEvent(
+                amplitude=1.0,
+                delta=0.25,
+                duration=0.75,
+                frequency=333,
+                is_stop=True,
+                uuid=UUID('C'),
+                )
+            supriya.tools.patterntools.NoteEvent(
+                amplitude=1.0,
+                delta=0.5,
+                duration=1.0,
+                frequency=660,
+                uuid=UUID('A'),
+                )
+            supriya.tools.patterntools.NoteEvent(
+                amplitude=1.0,
+                delta=0.5,
+                duration=0.75,
+                frequency=444,
+                is_stop=True,
+                uuid=UUID('D'),
+                )
+            supriya.tools.patterntools.NoteEvent(
+                amplitude=1.0,
+                delta=0.25,
+                duration=1.0,
+                frequency=880,
+                uuid=UUID('A'),
+                )
+            supriya.tools.patterntools.NoteEvent(
+                amplitude=1.0,
+                delta=0.75,
+                duration=0.75,
+                frequency=555,
+                is_stop=True,
+                uuid=UUID('E'),
+                )
+            supriya.tools.patterntools.NoteEvent(
+                amplitude=1.0,
+                duration=1.0,
+                frequency=990,
+                is_stop=True,
+                uuid=UUID('A'),
+                )
+            ''',
+            replace_uuids=True,
+            )
+
+    def test_send_01(self):
+        events, iterator = [], iter(self.pattern)
+        for _ in range(1):
+            events.append(next(iterator))
+        iterator.send(True)
+        events.extend(iterator)
+        self.compare_objects_as_strings(
+            events,
+            '''
+            ''',
+            replace_uuids=True,
+            )
+
     def test_manual_incommunicado(self):
         lists, deltas = self.manual_incommunicado(self.pattern, 10)
         assert lists == [
