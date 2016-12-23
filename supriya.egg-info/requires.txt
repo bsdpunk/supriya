@@ -1,0 +1,12 @@
+abjad>=2.19
+pytest>=3.0.0
+six
+sphinx>=1.4
+sphinx_rtd_theme
+tornado
+tox
+enum34
+pathlib2
+numpy
+python-rtmidi
+wavefile
