@@ -5,9 +5,7 @@
 
 # Packages
 parts
-bin
 var
-sdist
 develop-eggs
 .installed.cfg
 lib
